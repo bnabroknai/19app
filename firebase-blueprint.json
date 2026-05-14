@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User state for the 19-day somatic engine.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "archetype": { "type": "string", "enum": ["Witness", "Warrior", "Orphan", "Code-See-er"] },
+        "tier": { "type": "string", "enum": ["BOP", "BoP", "bOp"] },
+        "currentDay": { "type": "number" },
+        "currentCycle": { "type": "number" },
+        "lastCompletedAt": { "type": "string", "format": "date-time" },
+        "isPro": { "type": "boolean" }
+      },
+      "required": ["uid", "archetype", "tier"]
+    },
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "description": "User reflection for a specific day and cycle.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "day": { "type": "number" },
+        "cycle": { "type": "number" },
+        "text": { "type": "string" },
+        "tier": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "day", "cycle", "text"]
+    },
+    "DailyContent": {
+      "title": "Daily Content",
+      "description": "Static content for each day of the 19-day cycle.",
+      "type": "object",
+      "properties": {
+        "day": { "type": "number" },
+        "tier": { "type": "string" },
+        "prayer": { "type": "string" },
+        "prompt": { "type": "string" },
+        "practiceCue": { "type": "string" },
+        "audioUrl": { "type": "string" }
+      },
+      "required": ["day", "tier", "prayer", "prompt", "practiceCue"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Private user profiles."
+    },
+    "journal_entries/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "User journal entries."
+    },
+    "daily_content/{contentId}": {
+      "schema": "DailyContent",
+      "description": "Reference content for the somatic cycles."
+    }
+  }
+}

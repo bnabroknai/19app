@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entities ---
+
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == request.auth.uid 
+          && data.archetype in ['Witness', 'Warrior', 'Orphan', 'Code-See-er']
+          && data.tier in ['BOP', 'BoP', 'bOp']
+          && (data.get('currentDay', 1) is number && data.get('currentDay', 1) >= 1 && data.get('currentDay', 1) <= 19);
+      }
+
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().currentDay == 1;
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        // Allow progression
+        incoming().diff(existing()).affectedKeys().hasOnly(['currentDay', 'currentCycle', 'lastDayCompleted', 'lastCompletedAt'])
+      );
+    }
+
+    match /journal_entries/{entryId} {
+      function isValidEntry(data) {
+        return isOwner(data.userId) 
+          && data.day is number && data.day >= 1 && data.day <= 19
+          && data.cycle is number && data.cycle >= 1
+          && data.text is string && data.text.size() <= 5000;
+      }
+
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidEntry(incoming()) && incoming().createdAt == request.time;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /daily_content/{contentId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only (backend service)
+    }
+  }
+}
