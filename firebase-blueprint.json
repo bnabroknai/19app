@@ -9,6 +9,8 @@
         "name": { "type": "string" },
         "archetype": { "type": "string", "enum": ["Witness", "Warrior", "Orphan", "Code-See-er"] },
         "tier": { "type": "string", "enum": ["BOP", "BoP", "bOp"] },
+        "spiralState": { "type": "string", "enum": ["In Crisis", "Stuck", "Curious"] },
+        "historyVoice": { "type": "string" },
         "currentDay": { "type": "number" },
         "currentCycle": { "type": "number" },
         "lastCompletedAt": { "type": "string", "format": "date-time" },

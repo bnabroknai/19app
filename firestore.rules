@@ -35,6 +35,8 @@ service cloud.firestore {
         return data.uid == request.auth.uid 
           && data.archetype in ['Witness', 'Warrior', 'Orphan', 'Code-See-er']
           && data.tier in ['BOP', 'BoP', 'bOp']
+          && data.spiralState in ['In Crisis', 'Stuck', 'Curious']
+          && (data.get('historyVoice', '') is string)
           && (data.get('currentDay', 1) is number && data.get('currentDay', 1) >= 1 && data.get('currentDay', 1) <= 19);
       }
 

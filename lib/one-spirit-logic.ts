@@ -1,27 +1,47 @@
 export type Archetype = 'Witness' | 'Warrior' | 'Orphan' | 'Code-See-er';
 export type Tier = 'BOP' | 'BoP' | 'bOp';
+export type SpiralState = 'In Crisis' | 'Stuck' | 'Curious';
 
 export interface SpiralProfile {
   archetype: Archetype;
   tier: Tier;
+  spiralState: SpiralState;
+  historyVoice?: string;
 }
 
-export const ARCHETYPES: Record<Archetype, { lineage: string; description: string }> = {
+export const SPIRAL_STATE_TO_TIER: Record<SpiralState, Tier> = {
+  'In Crisis': 'BOP',
+  'Stuck': 'BoP',
+  'Curious': 'bOp'
+};
+
+export const HISTORY_VOICES: Record<Archetype, string[]> = {
+  Witness: ['Vedic Sage', 'Heraclitus', 'Lao Tzu'],
+  Warrior: ['Marcus Aurelius', 'Gnostic Seeker', 'Leonidas'],
+  Orphan: ['Rumi', 'Hafiz', 'Mirabai'],
+  'Code-See-er': ['Hermes Trismegistus', 'Tesla', 'Alan Turing']
+};
+
+export const ARCHETYPES: Record<Archetype, { lineage: string; description: string; voiceTone: string }> = {
   Witness: { 
     lineage: 'Vedic', 
-    description: 'Focuses on long-term orientation and patience. Evolutionary Great Year cycles.' 
+    description: 'Focuses on long-term orientation and patience. Evolutionary Great Year cycles.',
+    voiceTone: 'Patient, observer-oriented, timeless.'
   },
   Warrior: { 
     lineage: 'Hebrew/Gnostic', 
-    description: 'Focuses on boundaries and action. Targets rigidity vs surrender.' 
+    description: 'Focuses on boundaries and action. Targets rigidity vs surrender.',
+    voiceTone: 'Disciplined, direct, boundary-focused.'
   },
   Orphan: { 
     lineage: 'Sufi', 
-    description: 'Focuses on longing and resonance. Finding containers for permeability.' 
+    description: 'Focuses on longing and resonance. Finding containers for permeability.',
+    voiceTone: 'Poetic, resonant, longing-driven.'
   },
   'Code-See-er': { 
     lineage: 'Synthesis', 
-    description: 'Focuses on pattern recognition. Targets the intellectual leak of analysis-paralysis.' 
+    description: 'Focuses on pattern recognition. Targets the intellectual leak of analysis-paralysis.',
+    voiceTone: 'Analytical, geometric, pattern-heavy.'
   }
 };
 

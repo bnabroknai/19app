@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '@/lib/firebase';
-import { Archetype, Tier, TIERS, ARCHETYPES } from '@/lib/one-spirit-logic';
+import { Archetype, Tier, SpiralState, TIERS, ARCHETYPES } from '@/lib/one-spirit-logic';
 import { OnboardingQuiz } from '@/components/OnboardingQuiz';
 import { SpiralMandala } from '@/components/SpiralMandala';
 import { DailyCard } from '@/components/DailyCard';
@@ -73,7 +73,7 @@ export default function OneSpiritApp() {
     }
   };
 
-  const handleOnboardingComplete = async (selection: { archetype: Archetype; tier: Tier }) => {
+  const handleOnboardingComplete = async (selection: { archetype: Archetype; tier: Tier; spiralState: SpiralState; historyVoice: string }) => {
     if (!user) return;
     try {
       const newProfile = {
