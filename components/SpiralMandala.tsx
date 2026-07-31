@@ -32,25 +32,49 @@ export function SpiralMandala({ currentDay, tier, onNodeClick }: SpiralMandalaPr
           const isCompleted = node.day <= currentDay;
           const isCurrent = node.day === currentDay;
 
+          // Resolve color overrides specifically matching user PRD
+          let nodeFill = '#2d2d44';
+          let nodeStroke = '#4a4a6a';
+          let glowColor = tierColors.primary;
+
+          if (isCompleted) {
+            if (tier === 'BOP') {
+              // Black and Royal Purple
+              nodeFill = '#000000';
+              nodeStroke = '#4b0082';
+              glowColor = '#4b0082';
+            } else if (tier === 'BoP') {
+              // Violet and Soft Gray
+              nodeFill = '#9d4edd';
+              nodeStroke = '#708090';
+              glowColor = '#9d4edd';
+            } else {
+              // Soft Lavender and Cream
+              nodeFill = '#e6e6fa';
+              nodeStroke = '#f8f9fa';
+              glowColor = '#e6e6fa';
+            }
+          }
+
           return (
             <motion.circle
               key={node.day}
               cx={node.x}
               cy={node.y}
-              r={isCurrent ? 2.5 : 1.5}
-              fill={isCompleted ? tierColors.primary : '#2d2d44'}
-              stroke={isCompleted ? tierColors.secondary : '#4a4a6a'}
-              strokeWidth={isCurrent ? 1 : 0.5}
+              r={isCurrent ? 2.8 : 1.8}
+              fill={nodeFill}
+              stroke={nodeStroke}
+              strokeWidth={isCurrent ? 1.2 : 0.6}
               initial={{ scale: 0 }}
               animate={{ 
                 scale: 1,
                 opacity: isCompleted ? 1 : 0.4
               }}
-              whileHover={{ scale: 1.5, opacity: 1 }}
+              whileHover={{ scale: 1.6, opacity: 1 }}
               onClick={() => onNodeClick?.(node.day)}
               className="cursor-pointer transition-colors duration-300"
               style={{
-                filter: isCurrent ? `drop-shadow(0 0 8px ${tierColors.primary})` : 'none'
+                filter: isCurrent ? `drop-shadow(0 0 10px ${glowColor})` : 'none'
               }}
             />
           );
@@ -62,10 +86,13 @@ export function SpiralMandala({ currentDay, tier, onNodeClick }: SpiralMandalaPr
         <motion.div
           animate={{ 
             scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2]
+            opacity: [0.2, 0.5, 0.2]
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="w-12 h-12 bg-violet-500 rounded-full blur-xl"
+          className="w-12 h-12 rounded-full blur-xl"
+          style={{
+            backgroundColor: tier === 'BOP' ? '#4b0082' : tier === 'BoP' ? '#9d4edd' : '#e6e6fa'
+          }}
         />
       </div>
     </div>

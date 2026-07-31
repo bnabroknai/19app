@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Play, Pause, Save, CheckCircle2, ChevronRight, Share2 } from 'lucide-react';
+import { Play, Pause, Save, CheckCircle2, ChevronRight, Share2, HelpCircle, AlertCircle } from 'lucide-react';
 import { DailyContent } from '@/lib/mock-content';
 import { Tier, TIERS, ARCHETYPES, Archetype } from '@/lib/one-spirit-logic';
+import { resonantEngine } from '@/lib/audio-synthesizer';
 
 interface DailyCardProps {
   content: DailyContent;
@@ -12,13 +13,54 @@ interface DailyCardProps {
   cycle: number;
   onComplete: (journal: string) => void;
   isCompleted: boolean;
+  historyVoice?: string;
+  isMissedDay?: boolean; // Flag if user returning from gap
 }
 
-export function DailyCard({ content, archetype, cycle, onComplete, isCompleted }: DailyCardProps) {
+export function DailyCard({ content, archetype, cycle, onComplete, isCompleted, historyVoice, isMissedDay = false }: DailyCardProps) {
   const [journal, setJournal] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlayingPractice, setIsPlayingPractice] = useState(false);
+  const [isPlayingRecovery, setIsPlayingRecovery] = useState(false);
   const tierColors = TIERS[content.tier].colors;
   const archetypeInfo = ARCHETYPES[archetype];
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      resonantEngine.stopAll();
+    };
+  }, []);
+
+  const handlePracticeToggle = () => {
+    if (isPlayingPractice) {
+      resonantEngine.stop110HzCarrier();
+      setIsPlayingPractice(false);
+    } else {
+      resonantEngine.stopAll();
+      setIsPlayingRecovery(false);
+      resonantEngine.start110HzCarrier(0.2); // Start 110Hz resonant Carrier wave
+      setIsPlayingPractice(true);
+    }
+  };
+
+  const handleInterruptionRecovery = () => {
+    if (isPlayingRecovery) {
+      resonantEngine.stopAll();
+      setIsPlayingRecovery(false);
+    } else {
+      resonantEngine.stopAll();
+      setIsPlayingPractice(false);
+      setIsPlayingRecovery(true);
+
+      const recoverySpeech = `Welcome back to the Shard Protocol. You are reintegrating into Day ${content.day}. Yesterday, the frequency explored ${content.prayer.substring(0, 50)}. Ground your heels now. Relax your jaw, listen to the 110 hertz vibration, and prepare to integrate today's Shard.`;
+      
+      resonantEngine.speakWithHum(
+        recoverySpeech, 
+        historyVoice || 'Guide',
+        () => setIsPlayingRecovery(false)
+      );
+    }
+  };
 
   // Dynamically change copy tone based on archetype (simplifying for demo)
   const getGreeting = () => {
@@ -45,6 +87,33 @@ export function DailyCard({ content, archetype, cycle, onComplete, isCompleted }
         </div>
       </div>
 
+      {/* Forgiving Streak / Interruption alert if applicable */}
+      {isMissedDay && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-xs font-mono uppercase tracking-wider text-amber-300 font-bold">Forgiving Streak: Active</p>
+              <p className="text-xs text-slate-400">Your streak has been safely held. Play Interruption Recovery to reintegrate.</p>
+            </div>
+          </div>
+          <button
+            onClick={handleInterruptionRecovery}
+            className={`px-4 py-2 rounded-xl text-xs font-mono uppercase font-bold transition-all ${
+              isPlayingRecovery 
+                ? 'bg-amber-500 text-black animate-pulse' 
+                : 'bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:bg-amber-500/30'
+            }`}
+          >
+            {isPlayingRecovery ? 'Active...' : 'Reintegrate'}
+          </button>
+        </motion.div>
+      )}
+
       {/* Prayer Section */}
       <motion.section 
         initial={{ opacity: 0, y: 10 }}
@@ -66,20 +135,39 @@ export function DailyCard({ content, archetype, cycle, onComplete, isCompleted }
       <section className="bg-violet-950/20 p-6 rounded-3xl border border-violet-900/30 space-y-4">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="w-12 h-12 rounded-full flex items-center justify-center bg-violet-600 hover:bg-violet-500 transition-colors shadow-[0_0_15px_rgba(157,78,221,0.4)]"
+            onClick={handlePracticeToggle}
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+              isPlayingPractice 
+                ? 'bg-emerald-600 hover:bg-emerald-500 animate-pulse' 
+                : 'bg-violet-600 hover:bg-violet-500'
+            } shadow-[0_0_15px_rgba(157,78,221,0.4)]`}
           >
-            {isPlaying ? <Pause className="text-white" /> : <Play className="ml-1 text-white" />}
+            {isPlayingPractice ? <Pause className="text-white" /> : <Play className="ml-1 text-white" />}
           </button>
           <div>
-            <h3 className="font-medium text-cream uppercase text-xs tracking-widest">Shard Protocol: 110Hz Practice</h3>
-            <p className="text-sm text-slate-400">Marcus (Wounded/Rasp) • 4:20</p>
+            <h3 className="font-medium text-cream uppercase text-xs tracking-widest">
+              {isPlayingPractice ? 'Resonant wave active (110Hz)' : 'Shard Protocol: 110Hz Practice'}
+            </h3>
+            <p className="text-sm text-slate-400">Carrier Tone • {historyVoice || 'Universal Sage'}</p>
           </div>
         </div>
         <p className="text-sm text-slate-300 border-l-2 border-violet-500/40 pl-4 py-1 italic">
           {content.practiceCue}
         </p>
       </section>
+
+      {/* Manual Interruption Recovery trigger if not triggered */}
+      {!isMissedDay && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleInterruptionRecovery}
+            className="text-xs text-violet-400/80 hover:text-violet-300 flex items-center gap-1.5 transition-colors"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            {isPlayingRecovery ? 'Playing Catch-Up Audio...' : 'Need catch-up? Play Interruption Recovery (60s)'}
+          </button>
+        </div>
+      )}
 
       {/* Reflection Prompt */}
       <section className="space-y-4">

@@ -159,21 +159,48 @@ export function OnboardingQuiz({ onComplete }: OnboardingProps) {
 
       {/* Input Area */}
       {!suggestedProfile && (
-        <form onSubmit={handleSend} className="p-6 border-t border-violet-900/20 bg-black/20 flex gap-4">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe your inner frequency..."
-            className="flex-1 bg-violet-950/20 border border-violet-900/50 rounded-2xl px-4 py-3 text-cream text-sm focus:outline-none focus:border-violet-500/50 transition-colors"
-          />
-          <button 
-            type="submit"
-            disabled={!input.trim() || isTyping}
-            className="w-12 h-12 rounded-2xl bg-violet-600 flex items-center justify-center text-white disabled:opacity-50 transition-all active:scale-90"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </form>
+        <div className="border-t border-violet-900/20 bg-black/20 p-6 space-y-4">
+          <form onSubmit={handleSend} className="flex gap-4">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Describe your inner frequency..."
+              className="flex-1 bg-violet-950/20 border border-violet-900/50 rounded-2xl px-4 py-3 text-cream text-sm focus:outline-none focus:border-violet-500/50 transition-colors"
+            />
+            <button 
+              type="submit"
+              disabled={!input.trim() || isTyping}
+              className="w-12 h-12 rounded-2xl bg-violet-600 flex items-center justify-center text-white disabled:opacity-50 transition-all active:scale-90"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
+          <div className="flex justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => setSuggestedProfile({ spiralState: 'In Crisis', archetype: 'Warrior', historyVoice: 'Marcus Aurelius' })}
+              className="text-xs text-violet-400 hover:text-violet-200 transition-colors"
+            >
+              Quick Setup: Warrior (Crisis)
+            </button>
+            <span className="text-violet-900">•</span>
+            <button
+              type="button"
+              onClick={() => setSuggestedProfile({ spiralState: 'Stuck', archetype: 'Witness', historyVoice: 'Vedic Sage' })}
+              className="text-xs text-violet-400 hover:text-violet-200 transition-colors"
+            >
+              Quick Setup: Witness (Stuck)
+            </button>
+            <span className="text-violet-900">•</span>
+            <button
+              type="button"
+              onClick={() => setSuggestedProfile({ spiralState: 'Curious', archetype: 'Orphan', historyVoice: 'Rumi' })}
+              className="text-xs text-violet-400 hover:text-violet-200 transition-colors"
+            >
+              Quick Setup: Orphan (Curious)
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
