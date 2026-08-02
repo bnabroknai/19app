@@ -86,21 +86,34 @@ class ResonantEngine {
   speakWithHum(text: string, voiceAlias: string, onEnd?: () => void) {
     if (typeof window === 'undefined') return;
 
-    // Stop current speech
-    window.speechSynthesis.cancel();
+    // Stop current speech safely if supported
+    const hasSpeech = typeof window !== 'undefined' && !!window.speechSynthesis;
+    if (hasSpeech) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        console.warn("Speech synthesis cancel failed:", e);
+      }
+    }
     this.start110HzCarrier(0.2);
 
     const utterance = new SpeechSynthesisUtterance(text);
     this.activeUtterance = utterance;
 
     // Try to find a lower, more resonant voice or one matching gender/accent
-    const voices = window.speechSynthesis.getVoices();
-    let selectedVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google US English'));
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => v.lang.startsWith('en'));
-    }
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
+    if (hasSpeech) {
+      try {
+        const voices = window.speechSynthesis.getVoices();
+        let selectedVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google US English'));
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => v.lang.startsWith('en'));
+        }
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+      } catch (e) {
+        console.warn("Error resolving speech voices:", e);
+      }
     }
 
     // Adjust rate and pitch to be slower/deeper ("wounded/rasp" somatic style)
@@ -117,12 +130,32 @@ class ResonantEngine {
       if (onEnd) onEnd();
     };
 
-    window.speechSynthesis.speak(utterance);
+    if (hasSpeech) {
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.error("Speech synthesis speak failed, running fallback:", e);
+        setTimeout(() => {
+          this.stop110HzCarrier();
+          if (onEnd) onEnd();
+        }, 3000);
+      }
+    } else {
+      // Fallback if SpeechSynthesis is completely unsupported/blocked in iframe
+      setTimeout(() => {
+        this.stop110HzCarrier();
+        if (onEnd) onEnd();
+      }, 3000);
+    }
   }
 
   stopAll() {
-    if (typeof window !== 'undefined') {
-      window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        console.warn("Speech synthesis cancel on stopAll failed:", e);
+      }
     }
     this.stop110HzCarrier();
   }
